@@ -1,21 +1,17 @@
-class Node {
+export default class Node {
   data;
-  left;
-  right;
+  left = null;
+  right = null;
 
-  constructor(data, left = null, right = null) {
+  constructor(data) {
     if (data !== 0 && !data) {
-      throw new TypeError("Required argument is missing");
+      throw new TypeError("Argument is missing");
     }
 
     if (typeof data !== "number") {
-      throw new TypeError("Type of data is explicitly to be number");
+      throw new TypeError("Type of first argument is explicitly to be number");
     }
 
     this.data = data;
-    this.left = left;
-    this.right = right;
   }
 }
-
-export default Node;
