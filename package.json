@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "template for npm projects",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "jest --watch"
   },
