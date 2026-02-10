@@ -16,7 +16,7 @@ export default class Tree {
   }
 
   #filterArray = (arr) => {
-    const sorted = arr.toSorted((a, b) => a - b);
+    const sorted = arr.sort((a, b) => a - b);
     const filtered = sorted.reduce((acc, item) => {
       if (!acc.includes(item)) {
         acc.push(item);
@@ -57,19 +57,16 @@ export default class Tree {
   };
 
   includes = (value) => {
-    const queue = [];
-    queue.push(this.root);
-
-    while (queue.length > 0) {
-      const current = queue.shift();
+    let current = this.root;
+    while (current) {
       if (current.data === value) {
         return true;
       }
-      if (current.left) {
-        queue.push(current.left);
-      }
-      if (current.right) {
-        queue.push(current.right);
+
+      if (current.data > value) {
+        current = current.left;
+      } else {
+        current = current.right;
       }
     }
     return false;
@@ -273,9 +270,8 @@ export default class Tree {
 
     const root = this.root;
     const node = this.#findNode(root, value);
-    console.log(node);
-    // const height = this.#getHeight(node, 0);
-    // return height;
+    const height = this.#getHeight(node, 0);
+    return height;
   };
 
   #findNode = (root, value) => {
@@ -295,19 +291,43 @@ export default class Tree {
     }
   };
 
-  // #getHeight = (root, height) => {
-  //   if (!root.left && !root.right) {
-  //     return height;
-  //   }
+  #getHeight = (root, height) => {
+    if (!root.left && !root.right) {
+      return height;
+    }
 
-  //   if (root.left) {
-  //     return this.#getHeight(root.left, height + 1);
-  //   }
+    if (root.left) {
+      return this.#getHeight(root.left, height + 1);
+    }
 
-  //   if (root.right) {
-  //     return this.#getHeight(root.right, height + 1);
-  //   }
-  // };
+    if (root.right) {
+      return this.#getHeight(root.right, height + 1);
+    }
+  };
+
+  depth = (value) => {
+    if (!this.includes(value)) {
+      return;
+    }
+
+    const root = this.root;
+    const queue = [];
+    queue.push({ node: root, level: 0 });
+    while (queue.length > 0) {
+      const curr = queue.shift();
+      const node = curr.node;
+      const level = curr.level;
+      if (node.data === value) {
+        return level;
+      }
+      if (node.left) {
+        queue.push({ node: node.left, level: level + 1 });
+      }
+      if (node.right) {
+        queue.push({ node: node.right, level: level + 1 });
+      }
+    }
+  };
 }
 
 // const arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];

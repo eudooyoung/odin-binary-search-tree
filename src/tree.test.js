@@ -20,7 +20,7 @@ describe("Tree test", () => {
     expect(tree.root.data).toBe(8);
   });
 
-  it("includes function", () => {
+  it.only("includes function", () => {
     expect(tree.includes(1)).toBe(true);
     expect(tree.includes(2)).toBe(false);
     expect(tree.includes(3)).toBe(true);
@@ -89,10 +89,32 @@ describe("Tree test", () => {
   });
 
   it("height function", () => {
-    // expect(tree.height(-1)).toBeUndefined();
-    // expect(tree.height(1)).toBe(0);
-    // expect(tree.height(3)).toBe(1);
-    // expect(tree.height(4)).toBe(2);
+    expect(tree.height(-1)).toBeUndefined();
+    expect(tree.height(1)).toBe(0);
+    expect(tree.height(3)).toBe(1);
+    expect(tree.height(4)).toBe(2);
     expect(tree.height(5)).toBe(0);
+    expect(tree.height(7)).toBe(1);
+    expect(tree.height(8)).toBe(3);
+    expect(tree.height(324)).toBe(0);
+    expect(tree.height(9)).toBe(0);
+    expect(tree.height(23)).toBe(1);
+    expect(tree.height(6345)).toBe(1);
+    expect(tree.height(67)).toBe(2);
+  });
+
+  it("depth function", () => {
+    expect(tree.depth(-1)).toBeUndefined();
+    expect(tree.depth(8)).toBe(0);
+    expect(tree.depth(4)).toBe(1);
+    expect(tree.depth(67)).toBe(1);
+    expect(tree.depth(3)).toBe(2);
+    expect(tree.depth(7)).toBe(2);
+    expect(tree.depth(23)).toBe(2);
+    expect(tree.depth(6345)).toBe(2);
+    expect(tree.depth(1)).toBe(3);
+    expect(tree.depth(5)).toBe(3);
+    expect(tree.depth(9)).toBe(3);
+    expect(tree.depth(324)).toBe(3);
   });
 });
