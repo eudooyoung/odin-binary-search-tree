@@ -9,39 +9,35 @@ export default class Tree {
     }
 
     if (!Array.isArray(arr)) {
-      throw new TypeError("Argumet should be an array");
+      throw new TypeError("Argument should be an array");
     }
 
-    this.root = this.#buildTree(this.#filterArray(arr));
+    this.root = this.#buildTree(arr);
   }
 
-  #filterArray = (arr) => {
-    const sorted = arr.sort((a, b) => a - b);
-    const filtered = sorted.reduce((acc, item) => {
-      if (!acc.includes(item)) {
-        acc.push(item);
-      }
-      return acc;
-    }, []);
-
-    // check filtered arr
-    // console.log(filtered);
-    return filtered;
+  #buildTree = (arr) => {
+    const clean = this.#normalizeArray(arr);
+    return this.#buildTreeRecursive(clean, 0, clean.length - 1);
   };
 
-  #buildTree = (arr) => {
-    const n = arr.length;
-    if (n < 1) {
+  #normalizeArray = (arr) => {
+    const uniqueSet = new Set(arr);
+    const uniqueArr = Array.from(uniqueSet);
+    const sortedUnique = uniqueArr.sort((a, b) => a - b);
+
+    return sortedUnique;
+  };
+
+  #buildTreeRecursive = (arr, start, end) => {
+    if (start > end) {
       return null;
     }
 
-    const mid = Math.floor(n / 2);
+    const mid = Math.floor((start + end) / 2);
     const root = new Node(arr[mid]);
-    const leftArr = arr.slice(0, mid);
-    const rightArr = arr.slice(mid + 1);
 
-    root.left = this.#buildTree(leftArr);
-    root.right = this.#buildTree(rightArr);
+    root.left = this.#buildTreeRecursive(arr, start, mid - 1);
+    root.right = this.#buildTreeRecursive(arr, mid + 1, end);
 
     return root;
   };
@@ -73,67 +69,68 @@ export default class Tree {
   };
 
   insert = (value) => {
-    if (this.includes(value)) {
+    if (!this.root) {
+      this.root = new Node(value);
       return;
     }
 
     let current = this.root;
-    while (current) {
-      if (current.data > value && current.left) {
-        current = current.left;
-      } else if (current.data < value && current.right) {
-        current = current.right;
-      } else {
-        // break the loop when
-        // current.data > value && !current.left || current.data > value && !current.right
-        break;
+    while (true) {
+      if (current.data === value) {
+        return;
       }
-    }
-
-    if (current.data > value) {
-      current.left = new Node(value);
-    } else {
-      current.right = new Node(value);
+      if (value < current.data) {
+        if (!current.left) {
+          current.left = new Node(value);
+          return;
+        }
+        current = current.left;
+      } else {
+        if (!current.right) {
+          current.right = new Node(value);
+          return;
+        }
+        current = current.right;
+      }
     }
   };
 
   deleteItem = (value) => {
-    if (!this.includes(value)) {
-      return;
-    }
-
-    this.root = this.#delNode(this.root, value);
+    this.root = this.#deleteRecursive(this.root, value);
   };
 
-  #delNode = (root, value) => {
-    if (!root) {
+  #deleteRecursive = (node, value) => {
+    if (!node) {
       return null;
     }
 
-    if (root.data > value) {
-      root.left = this.#delNode(root.left, value);
-    } else if (root.data < value) {
-      root.right = this.#delNode(root.right, value);
+    if (value < node.data) {
+      node.left = this.#deleteRecursive(node.left, value);
+      return node;
+    } else if (node.data < value) {
+      node.right = this.#deleteRecursive(node.right, value);
+      return node;
     } else {
-      // Node with 0 or 1 child
-      if (!root.left) {
-        return root.right;
+      if (!node.left && !node.right) {
+        return null;
       }
-      if (!root.right) {
-        return root.left;
+      if (!node.left) {
+        return node.right;
+      }
+      if (!node.right) {
+        return node.left;
       }
 
-      // Node with 2 children
-      const successor = this.#getSuccessor(root);
-      root.data = successor.data;
-      root.right = this.#delNode(root.right, successor.data);
+      // get successor only when the node.left and node.right exist
+      const successor = this.#getSuccessor(node.right);
+      node.data = successor.data;
+      node.right = this.#deleteRecursive(node.right, successor.data);
+      return node;
     }
-    return root;
   };
 
   #getSuccessor = (current) => {
-    current = current.right;
-    while (current && current.leff) {
+    while (current.left) {
       current = current.left;
     }
     return current;
@@ -144,11 +141,21 @@ export default class Tree {
       throw new TypeError("A callback function is required");
     }
 
+    const root = this.root;
+
+    if (!root) {
+      return;
+    }
+
     const queue = [];
-    queue.push(this.root);
-    while (queue.length > 0) {
-      const current = queue.shift();
+    let head = 0;
+    queue.push(root);
+
+    while (head < queue.length) {
+      const current = queue[head];
+      head++;
       callback(current.data);
+
       if (current.left) {
         queue.push(current.left);
       }
@@ -164,8 +171,13 @@ export default class Tree {
     }
 
     const root = this.root;
+
+    if (!root) {
+      return;
+    }
+
     const levels = [];
-    this.#visitLevel(root, 0, levels);
+    this.#visitLevelRecursive(root, 0, levels);
 
     levels.forEach((level) => {
       level.forEach((item) => {
@@ -174,7 +186,7 @@ export default class Tree {
     });
   };
 
-  #visitLevel = (root, level, levels) => {
+  #visitLevelRecursive = (root, level, levels) => {
     if (root === null) {
       return;
     }
@@ -185,8 +197,8 @@ export default class Tree {
 
     levels[level].push(root.data);
 
-    this.#visitLevel(root.left, level + 1, levels);
-    this.#visitLevel(root.right, level + 1, levels);
+    this.#visitLevelRecursive(root.left, level + 1, levels);
+    this.#visitLevelRecursive(root.right, level + 1, levels);
   };
 
   inOrderForEach = (callback) => {
@@ -203,15 +215,9 @@ export default class Tree {
       return;
     }
 
-    if (root.left) {
-      this.#inOrderVisit(root.left, callback);
-    }
-
+    this.#inOrderVisit(root.left, callback);
     callback(root.data);
-
-    if (root.right) {
-      this.#inOrderVisit(root.right, callback);
-    }
+    this.#inOrderVisit(root.right, callback);
   };
 
   preOrderForEach = (callback) => {
@@ -229,13 +235,8 @@ export default class Tree {
     }
 
     callback(root.data);
-    if (root.left) {
-      this.#preOrderVisit(root.left, callback);
-    }
-
-    if (root.right) {
-      this.#preOrderVisit(root.right, callback);
-    }
+    this.#preOrderVisit(root.left, callback);
+    this.#preOrderVisit(root.right, callback);
   };
 
   postOrderForEach = (callback) => {
@@ -252,85 +253,115 @@ export default class Tree {
       return;
     }
 
-    if (root.left) {
-      this.#postOrderVisit(root.left, callback);
-    }
-
-    if (root.right) {
-      this.#postOrderVisit(root.right, callback);
-    }
-
+    this.#postOrderVisit(root.left, callback);
+    this.#postOrderVisit(root.right, callback);
     callback(root.data);
   };
 
   height = (value) => {
-    if (!this.includes(value)) {
+    const node = this.#findNode(value);
+    if (!node) {
       return;
     }
-
-    const root = this.root;
-    const node = this.#findNode(root, value);
-    const height = this.#getHeight(node, 0);
+    const height = this.#heightRecursive(node);
     return height;
   };
 
-  #findNode = (root, value) => {
-    const queue = [];
-    queue.push(root);
-    while (queue.length > 0) {
-      const curr = queue.shift();
-      if (curr.data === value) {
-        return curr;
+  #findNode = (value) => {
+    let current = this.root;
+    while (current) {
+      if (current.data === value) {
+        return current;
       }
-      if (curr.left) {
-        queue.push(curr.left);
-      }
-      if (curr.right) {
-        queue.push(curr.right);
+      if (value < current.data) {
+        current = current.left;
+      } else {
+        current = current.right;
       }
     }
+    return null;
   };
 
-  #getHeight = (root, height) => {
-    if (!root.left && !root.right) {
-      return height;
+  #heightRecursive = (node) => {
+    if (!node) {
+      return -1;
     }
 
-    if (root.left) {
-      return this.#getHeight(root.left, height + 1);
-    }
+    const height = Math.max(
+      this.#heightRecursive(node.left),
+      this.#heightRecursive(node.right),
+    );
 
-    if (root.right) {
-      return this.#getHeight(root.right, height + 1);
-    }
+    return height + 1;
   };
 
   depth = (value) => {
-    if (!this.includes(value)) {
-      return;
+    let current = this.root;
+    let depth = 0;
+    while (current) {
+      if (value === current.data) {
+        return depth;
+      }
+      if (value < current.data) {
+        current = current.left;
+      } else {
+        current = current.right;
+      }
+      depth++;
+    }
+  };
+
+  isBalanced = () => {
+    const root = this.root;
+    if (!root) {
+      return true;
     }
 
-    const root = this.root;
     const queue = [];
-    queue.push({ node: root, level: 0 });
-    while (queue.length > 0) {
-      const curr = queue.shift();
-      const node = curr.node;
-      const level = curr.level;
-      if (node.data === value) {
-        return level;
+    queue.push(root);
+    let head = 0;
+    while (head < queue.length) {
+      const current = queue[head++];
+      if (!this.#areChildrenBalanced(current)) {
+        return false;
       }
-      if (node.left) {
-        queue.push({ node: node.left, level: level + 1 });
+      if (current.left) {
+        queue.push(current.left);
       }
-      if (node.right) {
-        queue.push({ node: node.right, level: level + 1 });
+      if (current.right) {
+        queue.push(current.right);
       }
     }
+    return true;
+  };
+
+  #areChildrenBalanced = (root) => {
+    const leftHeight = this.height(root.left?.data) ?? -1;
+    const rightHeight = this.height(root.right?.data) ?? -1;
+
+    const diff = Math.abs(leftHeight - rightHeight);
+    if (diff <= 1) {
+      return true;
+    }
+
+    return false;
+  };
+
+  rebalance = () => {
+    if (this.isBalanced()) {
+      return;
+    }
+    const dataAsArray = [];
+    this.levelOrderForEachIterative((data) => dataAsArray.push(data));
+    this.root = this.#buildTree(dataAsArray);
   };
 }
 
 // const arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
 // let tree = new Tree(arr);
+// console.log(tree.isBalanced());
+// tree.insert(7001);
+// console.log(tree.isBalanced());
 // tree.prettyPrint();
-// tree.height(5);
+// console.log(tree.height(324));
+// console.log(tree.height(9));
