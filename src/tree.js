@@ -317,34 +317,30 @@ export default class Tree {
       return true;
     }
 
-    const queue = [];
-    queue.push(root);
-    let head = 0;
-    while (head < queue.length) {
-      const current = queue[head++];
-      if (!this.#areChildrenBalanced(current)) {
-        return false;
-      }
-      if (current.left) {
-        queue.push(current.left);
-      }
-      if (current.right) {
-        queue.push(current.right);
-      }
-    }
-    return true;
+    return this.#checkBalacedWithHeight(root) !== -2;
   };
 
-  #areChildrenBalanced = (root) => {
-    const leftHeight = this.height(root.left?.data) ?? -1;
-    const rightHeight = this.height(root.right?.data) ?? -1;
-
-    const diff = Math.abs(leftHeight - rightHeight);
-    if (diff <= 1) {
-      return true;
+  #checkBalacedWithHeight = (node) => {
+    if (!node) {
+      return -1;
     }
 
-    return false;
+    const left = this.#checkBalacedWithHeight(node.left);
+    if (left === -2) {
+      return -2;
+    }
+
+    const right = this.#checkBalacedWithHeight(node.right);
+    if (right === -2) {
+      return -2;
+    }
+
+    const diff = Math.abs(left - right);
+    if (diff > 1) {
+      return -2;
+    }
+
+    return 1 + Math.max(left, right);
   };
 
   rebalance = () => {
