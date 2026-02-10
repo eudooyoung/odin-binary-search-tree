@@ -352,7 +352,7 @@ export default class Tree {
       return;
     }
     const dataAsArray = [];
-    this.levelOrderForEachIterative((data) => dataAsArray.push(data));
+    this.inOrderForEach((data) => dataAsArray.push(data));
     this.root = this.#buildTree(dataAsArray);
   };
 }
